@@ -32,7 +32,7 @@ export class User {
 	@Column()
 	@IsString()
 	@IsNotEmpty()
-	category-name: string
+	categoryname: string
 
 	@Column()
 	@IsString()

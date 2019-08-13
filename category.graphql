@@ -7,19 +7,19 @@ enum RoleEnum {
 	ADMIN
 }
 
-input CreateUserInput {
+input CreateCategoryInput {
 	username: String!
 	password: String!
 	email: String!
 }
 
-input UpdateUserInput {
+input UpdateCategoryInput {
 	username: String
 	password: String
 	email: String
 }
 
-input LoginUserInput {
+input LoginCategoryInput {
 	username: String!
 	password: String!
 }
@@ -28,31 +28,26 @@ type LoginResponse {
 	token: String!
 }
 
-type User {
+type Category {
 	_id: String!
-	username: String!
-	password: String!
-	email: String!
-	role: RoleEnum!
-	status: Boolean!
+	categoryname: String!
+	parent: String!
+	description: String!
 	createdAt: String!
 	updatedAt: String!
 }
 
 type Query {
-	hello: String!
-	me: User @isAuthenticated
-	users(offset: Int!, limit: Int!): [User!] @isAuthenticated
-	user(_id: String!): User @isAuthenticated
-	user123(_id: String!): User @isAuthenticated
+	categorys(): [Category!] @isAuthenticated
+	parent-categorys(): [Category!] @isAuthenticated
+	category(_id: String!): Category @isAuthenticated
+	user123(_id: String!): Category @isAuthenticated
 }
 
 type Mutation {
-	createUser(input: CreateUserInput!): User
-	updateUser(_id: String!, input: UpdateUserInput!): Boolean
-	deleteUser(_id: String!): Boolean @hasRole(role: "admin")
-	deleteUsers: Boolean! @hasRole(role: "admin")
-	login(input: LoginUserInput!): LoginResponse
-	setRole(_id: String!, role: RoleEnum!): Boolean @isAuthenticated
+	createCategory(input: CreateCategoryInput!): Category
+	updateCategory(_id: String!, input: UpdateCategoryInput!): Boolean
+	deleteCategory(_id: String!): Boolean @hasRole(role: "admin")
+	deleteCategorys: Boolean! @hasRole(role: "admin")
 }
 

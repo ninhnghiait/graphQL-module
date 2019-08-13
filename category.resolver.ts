@@ -19,11 +19,6 @@ export class UserResolver {
     constructor(private readonly userService: UserService) {
     }
 
-    @Query(() => String)
-    async hello() {
-        return await 'world';
-    }
-
     @Query(() => User)
     async me(@Context('currentUser') currentUser: User) {
         return await currentUser;

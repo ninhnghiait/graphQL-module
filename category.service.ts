@@ -1,25 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-	User,
-	CreateUserInput,
+	Category,
+	CreateCategoryInput,
 	LoginResponse,
-	LoginUserInput
-} from './user.entity';
+	LoginCategoryInput
+} from './category.entity';
 import { MongoRepository } from 'typeorm';
-import * as jwt from 'jsonwebtoken';
 import { AuthenticationError } from 'apollo-server-core';
-import { UpdateUserInput } from '../../graphql';
+import { UpdateCategoryInput } from '../../graphql';
 
 @Injectable()
-export class UserService {
+export class CategoryService {
 	constructor(
-		@InjectRepository(User)
-		private readonly userRepository: MongoRepository<User>
+		@InjectRepository(Category)
+		private readonly categoryRepository: MongoRepository<Category>
 	) {}
 
-	async findAll(offset: number, limit: number): Promise<User[]> {
-		return await this.userRepository.find({
+	async findAll(offset: number, limit: number): Promise<Category[]> {
+		return await this.categoryRepository.find({
 			order: { createdAt: 'DESC' },
 			skip: offset,
 			take: limit,
@@ -27,94 +26,39 @@ export class UserService {
 		});
 	}
 
-	async findById(_id: string): Promise<User> {
-		return await this.userRepository.findOne({ _id });
+	async findById(_id: string): Promise<Category> {
+		return await this.categoryRepository.findOne({ _id });
 	}
 
-	async create(input: CreateUserInput): Promise<User> {
-		const { username, password, email } = input;
-		const message = 'Email has already been taken.';
+	async create(input: CreateCategoryInput): Promise<Category> {
+		const { categoryname, parent, description } = input;
 
-		const existedUser = await this.userRepository.findOne({ email });
-
-		if (existedUser) {
-			throw new Error(message);
-		}
-
-		const user = new User();
-		user.username = username;
-		user.password = password;
-		user.email = email;
-		return await this.userRepository.save(user);
+		const category = new Category();
+		category.categoryname = categoryname;
+		category.parent = parent;
+		category.description = description;
+		return await this.categoryRepository.save(category);
 	}
 
-	async update(_id: string, input: UpdateUserInput): Promise<boolean> {
-		const { username, password, email } = input;
+	async update(_id: string, input: UpdateCategoryInput): Promise<boolean> {
+		const { categoryname, password, email } = input;
 
-		const user = await this.userRepository.findOne({ _id });
-		user.username = username;
-		user.password = password;
-		user.email = email;
+		const category = await this.categoryRepository.findOne({ _id });
+		category.categoryname = categoryname;
+		category.password = password;
+		category.email = email;
 
-		return (await this.userRepository.save(user)) ? true : false;
+		return (await this.categoryRepository.save(category)) ? true : false;
 	}
 
 	async delete(_id: string): Promise<boolean> {
-		const user = new User();
-		user._id = _id;
-		return (await this.userRepository.remove(user)) ? true : false;
+		const category = new Category();
+		category._id = _id;
+		return (await this.categoryRepository.remove(category)) ? true : false;
 	}
 
 	async deleteAll(): Promise<boolean> {
-		return (await this.userRepository.deleteMany({})) ? true : false;
+		return (await this.categoryRepository.deleteMany({})) ? true : false;
 	}
 
-	async login(input: LoginUserInput): Promise<LoginResponse> {
-		const { username, password } = input;
-		const message = 'Incorrect email or password. Please try again.';
-
-		const user = await this.userRepository.findOne({ username });
-
-		if (!user || !(await user.matchesPassword(password))) {
-			throw new AuthenticationError(message);
-		};
-
-		const token = await jwt.sign(
-			{
-				subject: user._id,
-				audience: user.username
-			},
-			process.env.SECRET_KEY,
-			{
-				expiresIn: '1h'
-			}
-		);
-
-		return { token };
-	}
-
-	async findOneByToken(token: string) {
-		const message = 'The token you provided was invalid.';
-		let currentUser;
-
-		try {
-			let decodeToken;
-
-			decodeToken = await jwt.verify(token, process.env.SECRET_KEY);
-
-			currentUser = await this.userRepository.findOne({
-				_id: decodeToken.subject
-			});
-		} catch (error) {
-			throw new AuthenticationError(message);
-		}
-
-		return currentUser;
-	}
-
-	async setRole(_id: string, role: string): Promise<boolean> {
-		return (await this.userRepository.updateOne({ _id }, { $set: { role } }))
-			? true
-			: false;
-	}
 }
